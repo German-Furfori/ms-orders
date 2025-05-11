@@ -1,11 +1,9 @@
 package com.immfly.msorders.controller;
 
 import com.immfly.msorders.dto.category.CategoryPagesResponseDto;
-import com.immfly.msorders.dto.category.CategoryResponseDto;
 import com.immfly.msorders.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
