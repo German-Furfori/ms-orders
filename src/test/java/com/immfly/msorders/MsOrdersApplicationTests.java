@@ -1,10 +1,10 @@
 package com.immfly.msorders;
 
 import com.immfly.msorders.entity.Category;
+import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.Product;
 import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,7 +13,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.FileCopyUtils;
-
 import java.io.File;
 import java.io.FileReader;
 
@@ -51,5 +50,14 @@ public abstract class MsOrdersApplicationTests {
 
 		entityManager.persist(product);
 		entityManager.flush();
+	}
+
+	protected Long generateOrderInDatabase() {
+		Order order = new Order();
+
+		entityManager.persist(order);
+		entityManager.flush();
+
+		return order.getId();
 	}
 }

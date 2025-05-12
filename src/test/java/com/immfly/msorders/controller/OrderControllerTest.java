@@ -9,10 +9,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -21,6 +21,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrderControllerTest extends MsOrdersApplicationTests {
 
     private final String pathOrders = "/orders";
+
+    private final String defaultPathOrderId = "/1";
 
     private static Stream<Arguments> dataForBadRequest() {
         return Stream.of(
@@ -71,6 +73,30 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.description").exists())
                 .andExpect(jsonPath("$.code").value("400 BAD_REQUEST"))
                 .andExpect(jsonPath("$.description").value(description));
+    }
+
+    @Test
+    @SneakyThrows
+    void dropOrder_withFieldsValid_returnOkStatus() {
+        Long id = this.generateOrderInDatabase();
+
+        mockMvc.perform(delete(pathOrders + "/" + id)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").exists())
+                .andExpect(jsonPath("$.status").value("DROPPED"));
+    }
+
+    @Test
+    @SneakyThrows
+    void dropOrder_withFieldsValid_returnNotFound() {
+        mockMvc.perform(delete(pathOrders + defaultPathOrderId)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("Order with ID 1 not found"));
     }
 
 }

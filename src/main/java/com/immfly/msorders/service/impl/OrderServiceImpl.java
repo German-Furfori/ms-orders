@@ -22,7 +22,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
 
-    private static final String NON_EXISTING_ORDER = "Does not exist an order with that ID";
+    private static final String NON_EXISTING_ORDER = "Order with ID %s not found";
 
     @Override
     public OrderResponseDto createOrder(SeatInformationRequestDto seatInformationRequestDto) {
@@ -35,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDto dropOrder(Long id) {
         Order orderToDrop = orderRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException(NON_EXISTING_ORDER));
+                .orElseThrow(() -> new NoSuchElementException(String.format(NON_EXISTING_ORDER, id)));
         orderToDrop.setStatus(OrderStatusEnum.DROPPED);
         log.debug("[OrderService] Dropping order...");
         orderToDrop = this.saveOrderOnDataBase(orderToDrop);
