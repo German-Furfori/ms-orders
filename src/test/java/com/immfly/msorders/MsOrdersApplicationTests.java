@@ -1,5 +1,6 @@
 package com.immfly.msorders;
 
+import com.immfly.msorders.entity.BuyerDetails;
 import com.immfly.msorders.entity.Category;
 import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.Product;
@@ -47,6 +48,7 @@ public abstract class MsOrdersApplicationTests {
 	protected void generateProductInDatabase(String name) {
 		Product product = new Product();
 		product.setName(name);
+		product.setStock(10);
 
 		entityManager.persist(product);
 		entityManager.flush();
@@ -54,6 +56,12 @@ public abstract class MsOrdersApplicationTests {
 
 	protected Long generateOrderInDatabase() {
 		Order order = new Order();
+
+		BuyerDetails buyerDetails = new BuyerDetails();
+		buyerDetails.setSeatLetter("A");
+		buyerDetails.setSeatNumber("1");
+
+		order.setBuyerDetails(buyerDetails);
 
 		entityManager.persist(order);
 		entityManager.flush();

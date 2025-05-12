@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,11 +23,13 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
 
     private final String pathOrders = "/orders";
 
+    private final String pathOrdersProducts = "/products";
+
     private final String defaultPathOrderId = "/1";
 
     private static Stream<Arguments> dataForBadRequest() {
         return Stream.of(
-                Arguments.of("orders/createOrderWIthEmptySeatLetter.json", "The seatLetter field must be 1 upper case letter"),
+                Arguments.of("orders/create-order/createOrderWIthEmptySeatLetter.json", "The seatLetter field must be 1 upper case letter"),
                 Arguments.of("orders/createOrderWithEmptySeatNumber.json", "The seatNumber field must be 1 number from 1-9"),
                 Arguments.of("orders/createOrderWithIncorrectSeatLetter.json", "The seatLetter field must be 1 upper case letter"),
                 Arguments.of("orders/createOrderWithIncorrectSeatLetter2.json", "The seatLetter field must be 1 upper case letter"),
@@ -39,7 +42,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
     @Test
     @SneakyThrows
     void createOrder_withFieldsValid_returnCreatedStatus() {
-        String bodyRequest = getContentFromFile("orders/createOrder.json");
+        String bodyRequest = getContentFromFile("orders/create-order/createOrder.json");
 
         int rowCountOrders = JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders");
         int rowCountBuyerDetails = JdbcTestUtils.countRowsInTable(jdbcTemplate, "buyer_details");
@@ -97,6 +100,34 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.description").exists())
                 .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
                 .andExpect(jsonPath("$.description").value("Order with ID 1 not found"));
+    }
+
+    @Test
+    @SneakyThrows
+    void addProductsToOrder_withFieldsValid_returnOkStatus() {
+        this.generateProductInDatabase("Tea");
+        this.generateProductInDatabase("Coffee");
+        Long id = this.generateOrderInDatabase();
+
+        String bodyRequest = getContentFromFile("orders/add-products/addProductsToOrder.json");
+
+        mockMvc.perform(patch(pathOrders + "/" + id + pathOrdersProducts)
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.products").isNotEmpty())
+                .andExpect(jsonPath("$.products[0].id").exists())
+                .andExpect(jsonPath("$.products[0].id").value(1))
+                .andExpect(jsonPath("$.products[1].id").exists())
+                .andExpect(jsonPath("$.products[1].id").value(2))
+                .andExpect(jsonPath("$.products[0].name").exists())
+                .andExpect(jsonPath("$.products[0].name").value("Tea"))
+                .andExpect(jsonPath("$.products[1].name").exists())
+                .andExpect(jsonPath("$.products[1].name").value("Coffee"))
+                .andExpect(jsonPath("$.products[0].stock").exists())
+                .andExpect(jsonPath("$.products[0].stock").value(5))
+                .andExpect(jsonPath("$.products[1].stock").exists())
+                .andExpect(jsonPath("$.products[1].stock").value(7));
     }
 
 }

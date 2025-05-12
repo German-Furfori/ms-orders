@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Slf4j
@@ -84,6 +86,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void updateProductStockAndOrder(Product product, Integer quantity, Order order) {
+        if (order.getProducts() == null) {
+            order.setProducts(new ArrayList<>());
+        }
+
         boolean alreadyInOrder = order.getProducts()
                 .stream()
                 .anyMatch(p -> p.getId().equals(product.getId()));
