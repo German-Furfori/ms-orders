@@ -3,9 +3,14 @@ package com.immfly.msorders.controller;
 import com.immfly.msorders.MsOrdersApplicationTests;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,10 +22,22 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
 
     private final String pathOrders = "/orders";
 
+    private static Stream<Arguments> dataForBadRequest() {
+        return Stream.of(
+                Arguments.of("orders/createOrderWIthEmptySeatLetter.json", "The seatLetter field must be 1 upper case letter"),
+                Arguments.of("orders/createOrderWithEmptySeatNumber.json", "The seatNumber field must be 1 number from 1-9"),
+                Arguments.of("orders/createOrderWithIncorrectSeatLetter.json", "The seatLetter field must be 1 upper case letter"),
+                Arguments.of("orders/createOrderWithIncorrectSeatLetter2.json", "The seatLetter field must be 1 upper case letter"),
+                Arguments.of("orders/createOrderWithIncorrectSeatNumber.json", "The seatNumber field must be 1 number from 1-9"),
+                Arguments.of("orders/createOrderWithNullSeatLetter.json", "The seatLetter field cannot be null"),
+                Arguments.of("orders/createOrderWithNullSeatNumber.json", "The seatNumber field cannot be null")
+        );
+    }
+
     @Test
     @SneakyThrows
-    void save_withFieldsValid_returnCreatedStatus() {
-        String bodyRequest = getContentFromFile("orders/saveOrder.json");
+    void createOrder_withFieldsValid_returnCreatedStatus() {
+        String bodyRequest = getContentFromFile("orders/createOrder.json");
 
         int rowCountOrders = JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders");
         int rowCountBuyerDetails = JdbcTestUtils.countRowsInTable(jdbcTemplate, "buyer_details");
@@ -38,6 +55,22 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
 
         assertEquals(rowCountOrders + 1, JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders"));
         assertEquals(rowCountBuyerDetails + 1, JdbcTestUtils.countRowsInTable(jdbcTemplate, "buyer_details"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("dataForBadRequest")
+    @SneakyThrows
+    void createOrder_withFieldsInvalid_returnBadRequest(String file, String description) {
+        String bodyRequest = getContentFromFile(file);
+
+        mockMvc.perform(post(pathOrders)
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("400 BAD_REQUEST"))
+                .andExpect(jsonPath("$.description").value(description));
     }
 
 }
