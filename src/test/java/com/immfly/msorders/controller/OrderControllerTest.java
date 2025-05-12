@@ -27,15 +27,28 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
 
     private final String defaultPathOrderId = "/1";
 
-    private static Stream<Arguments> dataForBadRequest() {
+    private static Stream<Arguments> createOrderDataForBadRequest() {
         return Stream.of(
                 Arguments.of("orders/create-order/createOrderWIthEmptySeatLetter.json", "The seatLetter field must be 1 upper case letter"),
-                Arguments.of("orders/createOrderWithEmptySeatNumber.json", "The seatNumber field must be 1 number from 1-9"),
-                Arguments.of("orders/createOrderWithIncorrectSeatLetter.json", "The seatLetter field must be 1 upper case letter"),
-                Arguments.of("orders/createOrderWithIncorrectSeatLetter2.json", "The seatLetter field must be 1 upper case letter"),
-                Arguments.of("orders/createOrderWithIncorrectSeatNumber.json", "The seatNumber field must be 1 number from 1-9"),
-                Arguments.of("orders/createOrderWithNullSeatLetter.json", "The seatLetter field cannot be null"),
-                Arguments.of("orders/createOrderWithNullSeatNumber.json", "The seatNumber field cannot be null")
+                Arguments.of("orders/create-order/createOrderWithEmptySeatNumber.json", "The seatNumber field must be 1 number from 1-9"),
+                Arguments.of("orders/create-order/createOrderWithIncorrectSeatLetter.json", "The seatLetter field must be 1 upper case letter"),
+                Arguments.of("orders/create-order/createOrderWithIncorrectSeatLetter2.json", "The seatLetter field must be 1 upper case letter"),
+                Arguments.of("orders/create-order/createOrderWithIncorrectSeatNumber.json", "The seatNumber field must be 1 number from 1-9"),
+                Arguments.of("orders/create-order/createOrderWithNullSeatLetter.json", "The seatLetter field cannot be null"),
+                Arguments.of("orders/create-order/createOrderWithNullSeatNumber.json", "The seatNumber field cannot be null")
+        );
+    }
+
+    private static Stream<Arguments> addProductsDataForBadRequest() {
+        return Stream.of(
+                Arguments.of("orders/add-products/addProductsToOrderWithNullList.json", "The productList field cannot be empty or null"),
+                Arguments.of("orders/add-products/addProductsToOrderWithEmptyList.json", "The productList field cannot be empty or null"),
+                Arguments.of("orders/add-products/addProductsToOrderWithNullId.json", "The id field cannot be null"),
+                Arguments.of("orders/add-products/addProductsToOrderWithNullQuantity.json", "The quantity field cannot be null"),
+                Arguments.of("orders/add-products/addProductsToOrderWithZeroId.json", "The id field cannot be 0 or negative"),
+                Arguments.of("orders/add-products/addProductsToOrderWithZeroQuantity.json", "The quantity field cannot be 0 or negative"),
+                Arguments.of("orders/add-products/addProductsToOrderWithNegativeId.json", "The id field cannot be 0 or negative"),
+                Arguments.of("orders/add-products/addProductsToOrderWithNegativeQuantity.json", "The quantity field cannot be 0 or negative")
         );
     }
 
@@ -63,7 +76,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
     }
 
     @ParameterizedTest
-    @MethodSource("dataForBadRequest")
+    @MethodSource("createOrderDataForBadRequest")
     @SneakyThrows
     void createOrder_withFieldsInvalid_returnBadRequest(String file, String description) {
         String bodyRequest = getContentFromFile(file);
@@ -128,6 +141,22 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.products[0].stock").value(5))
                 .andExpect(jsonPath("$.products[1].stock").exists())
                 .andExpect(jsonPath("$.products[1].stock").value(7));
+    }
+
+    @ParameterizedTest
+    @MethodSource("addProductsDataForBadRequest")
+    @SneakyThrows
+    void addProductsToOrder_withFieldsInvalid_returnBadRequest(String file, String description) {
+        String bodyRequest = getContentFromFile(file);
+
+        mockMvc.perform(patch(pathOrders + defaultPathOrderId + pathOrdersProducts)
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.code").value("400 BAD_REQUEST"))
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.description").value(description));
     }
 
 }

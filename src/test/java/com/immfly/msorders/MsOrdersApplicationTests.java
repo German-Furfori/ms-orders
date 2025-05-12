@@ -6,6 +6,7 @@ import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.Product;
 import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -35,6 +36,21 @@ public abstract class MsOrdersApplicationTests {
 	protected String getContentFromFile(String filePath) {
 		File file = new ClassPathResource(filePath).getFile();
 		return FileCopyUtils.copyToString(new FileReader(file));
+	}
+
+	@BeforeEach
+	void resetDatabase() {
+		jdbcTemplate.execute("DELETE FROM orders");
+		jdbcTemplate.execute("DELETE FROM products");
+		jdbcTemplate.execute("DELETE FROM categories");
+		jdbcTemplate.execute("DELETE FROM buyer_details");
+		jdbcTemplate.execute("DELETE FROM payment_details");
+		jdbcTemplate.execute("DELETE FROM orders_products");
+		jdbcTemplate.execute("ALTER TABLE orders ALTER COLUMN id RESTART WITH 1");
+		jdbcTemplate.execute("ALTER TABLE products ALTER COLUMN id RESTART WITH 1");
+		jdbcTemplate.execute("ALTER TABLE categories ALTER COLUMN id RESTART WITH 1");
+		jdbcTemplate.execute("ALTER TABLE buyer_details ALTER COLUMN id RESTART WITH 1");
+		jdbcTemplate.execute("ALTER TABLE payment_details ALTER COLUMN id RESTART WITH 1");
 	}
 
 	protected void generateCategoryInDatabase(String name) {
