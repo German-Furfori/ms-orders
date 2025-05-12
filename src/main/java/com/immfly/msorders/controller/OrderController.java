@@ -1,0 +1,34 @@
+package com.immfly.msorders.controller;
+
+import com.immfly.msorders.dto.order.OrderResponseDto;
+import com.immfly.msorders.dto.order.SeatInformationRequestDto;
+import com.immfly.msorders.service.OrderService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+
+@Slf4j
+@RestController
+@RequestMapping("/orders")
+@RequiredArgsConstructor
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseStatus(value = HttpStatus.CREATED)
+    public OrderResponseDto createOrder(@Valid @RequestBody SeatInformationRequestDto seatInformationRequestDto) {
+        log.debug("[Orders] createOrder request: [{}]", seatInformationRequestDto);
+        OrderResponseDto orderResponseDto = orderService.createOrder(seatInformationRequestDto);
+        log.debug("[Orders] createOrder response: [{}]", orderResponseDto);
+        return orderResponseDto;
+    }
+
+}
