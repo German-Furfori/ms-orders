@@ -2,6 +2,7 @@ package com.immfly.msorders.controller.advice;
 
 import com.immfly.msorders.error.ErrorResponse;
 import com.immfly.msorders.exception.DatabaseException;
+import com.immfly.msorders.exception.StockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,13 @@ public class ControllerAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse databaseExceptionHandler(DatabaseException exception) {
         log.error("[ControllerAdvice] databaseExceptionHandler, exception: [{}]", exception.getMessage());
+        return this.generateError(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
+    @ExceptionHandler(StockException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse stockExceptionHandler(StockException exception) {
+        log.error("[ControllerAdvice] stockExceptionHandler, exception: [{}]", exception.getMessage());
         return this.generateError(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 

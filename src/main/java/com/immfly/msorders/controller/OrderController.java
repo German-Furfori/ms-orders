@@ -1,6 +1,7 @@
 package com.immfly.msorders.controller;
 
 import com.immfly.msorders.dto.order.OrderResponseDto;
+import com.immfly.msorders.dto.order.ProductListRequestDto;
 import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,6 +41,16 @@ public class OrderController {
         log.debug("[Orders] dropOrder request: [{}]", id);
         OrderResponseDto orderResponseDto = orderService.dropOrder(id);
         log.debug("[Orders] dropOrder response: [{}]", orderResponseDto);
+        return orderResponseDto;
+    }
+
+    @PatchMapping(path = "/{id}/products", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseStatus(value = HttpStatus.OK)
+    public OrderResponseDto addProductsToOrder(@PathVariable Long id,
+                                               @Valid @RequestBody ProductListRequestDto productListRequestDto) {
+        log.debug("[Orders] addProductsToOrder request: [{}], [{}]", id, productListRequestDto);
+        OrderResponseDto orderResponseDto = orderService.addProductsToOrder(id, productListRequestDto);
+        log.debug("[Orders] addProductsToOrder response: [{}]", orderResponseDto);
         return orderResponseDto;
     }
 

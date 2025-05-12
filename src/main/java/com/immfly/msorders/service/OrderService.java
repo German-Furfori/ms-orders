@@ -1,6 +1,7 @@
 package com.immfly.msorders.service;
 
 import com.immfly.msorders.dto.order.OrderResponseDto;
+import com.immfly.msorders.dto.order.ProductListRequestDto;
 import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 
 public interface OrderService {
@@ -9,4 +10,5 @@ public interface OrderService {
 
     OrderResponseDto dropOrder(Long id);
 
+    OrderResponseDto addProductsToOrder(Long id, ProductListRequestDto productListRequestDto);
 }
