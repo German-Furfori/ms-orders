@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,15 @@ public class OrderController {
         log.debug("[Orders] createOrder request: [{}]", seatInformationRequestDto);
         OrderResponseDto orderResponseDto = orderService.createOrder(seatInformationRequestDto);
         log.debug("[Orders] createOrder response: [{}]", orderResponseDto);
+        return orderResponseDto;
+    }
+
+    @DeleteMapping(path = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseStatus(value = HttpStatus.OK)
+    public OrderResponseDto dropOrder(@PathVariable Long id) {
+        log.debug("[Orders] dropOrder request: [{}]", id);
+        OrderResponseDto orderResponseDto = orderService.dropOrder(id);
+        log.debug("[Orders] dropOrder response: [{}]", orderResponseDto);
         return orderResponseDto;
     }
 

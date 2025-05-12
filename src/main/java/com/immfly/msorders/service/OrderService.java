@@ -7,4 +7,6 @@ public interface OrderService {
 
     OrderResponseDto createOrder(SeatInformationRequestDto seatInformationRequestDto);
 
+    OrderResponseDto dropOrder(Long id);
+
 }
