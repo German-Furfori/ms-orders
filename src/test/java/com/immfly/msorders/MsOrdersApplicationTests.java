@@ -5,6 +5,8 @@ import com.immfly.msorders.entity.Category;
 import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.PaymentDetails;
 import com.immfly.msorders.entity.Product;
+import com.immfly.msorders.enums.OrderStatusEnum;
+import com.immfly.msorders.enums.PaymentStatusEnum;
 import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.FileCopyUtils;
 import java.io.File;
 import java.io.FileReader;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -72,19 +76,30 @@ public abstract class MsOrdersApplicationTests {
 		entityManager.flush();
 	}
 
-	protected Long generateOrderInDatabase() {
+	protected Order generateOrderInDatabase(OrderStatusEnum status) {
 		Order order = new Order();
 
 		BuyerDetails buyerDetails = new BuyerDetails();
 		buyerDetails.setSeatLetter("A");
 		buyerDetails.setSeatNumber("1");
 
+		PaymentDetails paymentDetails = new PaymentDetails();
+		paymentDetails.setTotalPrice(0L);
+
 		order.setBuyerDetails(buyerDetails);
-		order.setPaymentDetails(new PaymentDetails());
+		order.setPaymentDetails(paymentDetails);
+		order.setStatus(status);
 
 		entityManager.persist(order);
 		entityManager.flush();
 
-		return order.getId();
+		return order;
+	}
+
+	protected PaymentDetails getPaymentResponse(PaymentDetails paymentDetails, PaymentStatusEnum paymentStatusEnum) {
+		paymentDetails.setStatus(paymentStatusEnum);
+		paymentDetails.setDate(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+
+		return paymentDetails;
 	}
 }

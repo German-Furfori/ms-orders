@@ -1,0 +1,15 @@
+{
+  "productList": [
+    {
+      "id": 0,
+      "quantity": 10
+    }
+  ],
+  "buyerInformation": {
+    "email": "name@example.com"
+  },
+  "paymentDetails": {
+    "cardToken": "token",
+    "gateway": "gateway"
+  }
+}
