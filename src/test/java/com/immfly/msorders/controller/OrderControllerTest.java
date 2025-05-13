@@ -265,4 +265,22 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         assertEquals(rowCountOrderProductsAfter2Calls, 2);
     }
 
+    @Test
+    @SneakyThrows
+    void finishOrder_withNonExistingProduct_returnNotFound() {
+        Order order = this.generateOrderInDatabase(OrderStatusEnum.OPEN);
+
+        String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
+        bodyRequest = bodyRequest.replace("\"id\": 1", "\"id\": 100");
+
+        mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("Product with ID 100 not found"));
+    }
+
 }
