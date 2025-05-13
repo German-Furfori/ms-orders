@@ -21,14 +21,14 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
     @Test
     @SneakyThrows
     void findAllProducts_withData_returnPage() {
-        this.generateProductInDatabase("Tea");
-        this.generateProductInDatabase("Coffee");
-        this.generateProductInDatabase("Sandwich");
-        this.generateProductInDatabase("Pizza");
-        this.generateProductInDatabase("Potatoes");
-        this.generateProductInDatabase("Candy");
-        this.generateProductInDatabase("Water");
-        this.generateProductInDatabase("Wine");
+        this.generateProductInDatabase("Tea", 10);
+        this.generateProductInDatabase("Coffee", 10);
+        this.generateProductInDatabase("Sandwich", 10);
+        this.generateProductInDatabase("Pizza", 10);
+        this.generateProductInDatabase("Potatoes", 10);
+        this.generateProductInDatabase("Candy", 10);
+        this.generateProductInDatabase("Water", 10);
+        this.generateProductInDatabase("Wine", 10);
 
         mockMvc
                 .perform(get(pathCategory)

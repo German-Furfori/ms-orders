@@ -151,8 +151,8 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
     @Test
     @SneakyThrows
     void finishOrder_withFieldsValid_returnOkStatus() {
-        this.generateProductInDatabase("Tea");
-        this.generateProductInDatabase("Coffee");
+        this.generateProductInDatabase("Tea", 10);
+        this.generateProductInDatabase("Coffee", 10);
         Order order = this.generateOrderInDatabase(OrderStatusEnum.OPEN);
 
         given(paymentService.sendPayment(any(PaymentDetails.class)))
@@ -234,8 +234,8 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
     @Test
     @SneakyThrows
     void finishOrder_twoTimes_returnOk() {
-        this.generateProductInDatabase("Tea");
-        this.generateProductInDatabase("Coffee");
+        this.generateProductInDatabase("Tea", 10);
+        this.generateProductInDatabase("Coffee", 10);
         Order order = this.generateOrderInDatabase(OrderStatusEnum.OPEN);
 
         int rowCountOrderProductsBefore = JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders_products");
@@ -281,6 +281,45 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.description").exists())
                 .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
                 .andExpect(jsonPath("$.description").value("Product with ID 100 not found"));
+    }
+
+    @Test
+    @SneakyThrows
+    void finishOrder_withProductOutOfStock_returnConflict() {
+        this.generateProductInDatabase("Tea", 0);
+        this.generateProductInDatabase("Coffee", 10);
+        Order order = this.generateOrderInDatabase(OrderStatusEnum.OPEN);
+
+        String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
+
+        mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("409 CONFLICT"))
+                .andExpect(jsonPath("$.description").value("Product Tea is out of stock"));
+    }
+
+    @Test
+    @SneakyThrows
+    void finishOrder_withNotEnoughProductStock_returnConflict() {
+        this.generateProductInDatabase("Tea", 10);
+        this.generateProductInDatabase("Coffee", 10);
+        Order order = this.generateOrderInDatabase(OrderStatusEnum.OPEN);
+
+        String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
+        bodyRequest = bodyRequest.replace("\"quantity\": 5", "\"quantity\": 100");
+
+        mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("409 CONFLICT"))
+                .andExpect(jsonPath("$.description").value("Not enough stock for product Tea, stock: 10"));
     }
 
 }

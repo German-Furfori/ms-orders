@@ -68,10 +68,10 @@ public abstract class MsOrdersApplicationTests {
 		entityManager.flush();
 	}
 
-	protected void generateProductInDatabase(String name) {
+	protected void generateProductInDatabase(String name, Integer stock) {
 		Product product = new Product();
 		product.setName(name);
-		product.setStock(10);
+		product.setStock(stock);
 		product.setPrice(10L);
 
 		entityManager.persist(product);
