@@ -11,6 +11,7 @@ import com.immfly.msorders.enums.OrderStatusEnum;
 import com.immfly.msorders.enums.PaymentStatusEnum;
 import com.immfly.msorders.exception.DatabaseException;
 import com.immfly.msorders.mapper.OrderMapper;
+import com.immfly.msorders.repository.OrderProductRepository;
 import com.immfly.msorders.repository.OrderRepository;
 import com.immfly.msorders.repository.ProductRepository;
 import com.immfly.msorders.service.OrderService;
@@ -30,6 +31,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final ProductRepository productRepository;
 
+    private final OrderProductRepository orderProductRepository;
+
     private final OrderMapper orderMapper;
 
     private final PaymentService paymentService;
@@ -42,7 +45,7 @@ public class OrderServiceImpl implements OrderService {
 
     private static final String NOT_ENOUGH_STOCK_PRODUCT = "Not enough stock for product %s, stock: %s";
 
-    private static final String FINISHED_ORDER = "Order with ID %s already finished";
+    private static final String NOT_OPEN_ORDER = "Order with ID %s has status %s";
 
     @Override
     public OrderResponseDto createOrder(SeatInformationRequestDto seatInformationRequestDto) {
@@ -55,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDto dropOrder(Long id) {
         Order orderToDrop = this.getOrderFromDataBase(id);
+        this.verifyOrderStatus(orderToDrop);
         orderToDrop.setStatus(OrderStatusEnum.DROPPED);
         log.debug("[OrderService] Dropping order...");
         orderToDrop = this.saveOrderOnDataBase(orderToDrop);
@@ -66,6 +70,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDto finishOrder(Long id, FinishOrderRequestDto finishOrderRequestDto) {
         Order orderToFinish = this.getOrderFromDataBase(id);
         this.verifyOrderStatus(orderToFinish);
+        this.initializeOrderProductList(orderToFinish);
         orderToFinish = this.addProductsToOrder(orderToFinish, finishOrderRequestDto);
         orderMapper.updateOrderWithFinishOrderRequest(finishOrderRequestDto, orderToFinish);
         orderToFinish = this.saveOrderOnDataBase(orderToFinish);
@@ -106,24 +111,34 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void updateOrderWithProducts(Product product, Integer quantity, Order order) {
-        order.setOrderProducts(new ArrayList<>());
-
         if (product.getStock() == 0) {
             throw new UnsupportedOperationException(String.format(OUT_OF_STOCK_PRODUCT, product.getName()));
         } else if (product.getStock() - quantity < 0) {
             throw new UnsupportedOperationException(String.format(NOT_ENOUGH_STOCK_PRODUCT, product.getName(), product.getStock()));
         } else {
             OrderProduct newOrderProduct = orderMapper.getOrderProduct(order, product, quantity);
-            Long totalPrice = newOrderProduct.getProduct().getPrice() * newOrderProduct.getQuantity();
+            Long totalPrice = order.getPaymentDetails().getTotalPrice() +
+                    newOrderProduct.getProduct().getPrice() * newOrderProduct.getQuantity();
             order.getPaymentDetails().setTotalPrice(totalPrice);
             order.getOrderProducts().add(newOrderProduct);
         }
     }
 
     private void verifyOrderStatus(Order orderToFinish) {
-         if (OrderStatusEnum.FINISHED.equals(orderToFinish.getStatus())) {
-            throw new UnsupportedOperationException(String.format(FINISHED_ORDER, orderToFinish.getId()));
+         if (!OrderStatusEnum.OPEN.equals(orderToFinish.getStatus())) {
+            throw new UnsupportedOperationException(String.format(NOT_OPEN_ORDER, orderToFinish.getId(), orderToFinish.getStatus()));
         }
+    }
+
+    private void initializeOrderProductList(Order orderToFinish) {
+        if (orderToFinish.getOrderProducts() != null && !orderToFinish.getOrderProducts().isEmpty()) {
+            orderToFinish.getOrderProducts().forEach(orderProduct -> {
+                log.debug("Cleaning old data: {}", orderProduct.getId());
+                orderProductRepository.deleteByProductOrderId(orderProduct.getId());
+            });
+        }
+
+        orderToFinish.setOrderProducts(new ArrayList<>());
     }
 
     private void updateProductStocksAfterPayment(Order orderToFinish) {

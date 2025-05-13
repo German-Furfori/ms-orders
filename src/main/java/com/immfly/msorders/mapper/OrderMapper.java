@@ -5,10 +5,12 @@ import com.immfly.msorders.dto.order.OrderResponseDto;
 import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.OrderProduct;
+import com.immfly.msorders.entity.PaymentDetails;
 import com.immfly.msorders.entity.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
@@ -16,7 +18,7 @@ public interface OrderMapper {
     @Mapping(target = "status", expression = "java(com.immfly.msorders.enums.OrderStatusEnum.OPEN)")
     @Mapping(target = "buyerDetails.seatLetter", source = "seatLetter")
     @Mapping(target = "buyerDetails.seatNumber", source = "seatNumber")
-    @Mapping(target = "paymentDetails", expression = "java(new com.immfly.msorders.entity.PaymentDetails())")
+    @Mapping(target = "paymentDetails", expression = "java(getPaymentDetails())")
     Order seatInformationRequestToOrder(SeatInformationRequestDto seatInformationRequestDto);
 
     @Mapping(target = "buyerInformation.email", source = "buyerDetails.email")
@@ -34,4 +36,13 @@ public interface OrderMapper {
     @Mapping(target = "product", source = "product")
     @Mapping(target = "quantity", source = "quantity")
     OrderProduct getOrderProduct(Order order, Product product, Integer quantity);
+
+    @Named(value = "getPaymentDetails")
+    default PaymentDetails getPaymentDetails() {
+        PaymentDetails paymentDetails = new PaymentDetails();
+        paymentDetails.setTotalPrice(0L);
+
+        return paymentDetails;
+    }
+
 }
