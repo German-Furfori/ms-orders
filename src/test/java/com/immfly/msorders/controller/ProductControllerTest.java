@@ -14,6 +14,8 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
 
     private final String pathCategory = "/products";
 
+    private final String defaultPathProductId = "/1";
+
     private final String defaultPage = "0";
 
     private final String defaultSize = "4";
@@ -53,6 +55,36 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.count").exists())
                 .andExpect(jsonPath("$.total").exists())
                 .andExpect(jsonPath("$.results").isEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void findProductById_withData_returnProduct() {
+        this.generateProductInDatabase("Tea", 10);
+
+        mockMvc
+                .perform(get(pathCategory + defaultPathProductId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name").exists())
+                .andExpect(jsonPath("$.price").exists())
+                .andExpect(jsonPath("$.stock").exists())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Tea"))
+                .andExpect(jsonPath("$.price").value(10))
+                .andExpect(jsonPath("$.stock").value(10));
+    }
+
+    @Test
+    @SneakyThrows
+    void findProductById_withNoData_returnNotFound() {
+        mockMvc
+                .perform(get(pathCategory + defaultPathProductId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("Product with ID 1 not found"));
     }
 
 }

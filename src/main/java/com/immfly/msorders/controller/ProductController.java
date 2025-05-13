@@ -24,7 +24,7 @@ public class ProductController {
 
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
-    public ProductPagesResponseDto getProducts(Pageable pageable) {
+    public ProductPagesResponseDto findAllProducts(Pageable pageable) {
         log.debug("[Products] getProducts request: [{}]", pageable);
         ProductPagesResponseDto productPages = productService.findAll(pageable);
         log.debug("[Products] getProducts response: [{}]", productPages.getCount());
@@ -33,7 +33,7 @@ public class ProductController {
 
     @GetMapping(path = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
-    public ProductResponseDto getProductById(@PathVariable Long id) {
+    public ProductResponseDto findProductById(@PathVariable Long id) {
         log.debug("[Products] getProductById request: [{}]", id);
         ProductResponseDto productResponse = productService.findById(id);
         log.debug("[Products] getProductById response: [{}]", productResponse);
