@@ -20,6 +20,8 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -192,6 +194,8 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.paymentDetails.gateway").value("gateway"))
                 .andExpect(jsonPath("$.buyerInformation.email").value("name@example.com"))
                 .andExpect(jsonPath("$.status").value("FINISHED"));
+
+        verify(paymentService, times(1)).sendPayment(any(PaymentDetails.class));
     }
 
     @ParameterizedTest
@@ -208,6 +212,57 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.code").value("400 BAD_REQUEST"))
                 .andExpect(jsonPath("$.description").exists())
                 .andExpect(jsonPath("$.description").value(description));
+    }
+
+    @Test
+    @SneakyThrows
+    void finishOrder_withDroppedOrder_returnConflict() {
+        Order order = this.generateOrderInDatabase(OrderStatusEnum.DROPPED);
+
+        String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
+
+        mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("409 CONFLICT"))
+                .andExpect(jsonPath("$.description").value("Order with ID 1 has status DROPPED"));
+    }
+
+    @Test
+    @SneakyThrows
+    void finishOrder_twoTimes_returnOk() {
+        this.generateProductInDatabase("Tea");
+        this.generateProductInDatabase("Coffee");
+        Order order = this.generateOrderInDatabase(OrderStatusEnum.OPEN);
+
+        int rowCountOrderProductsBefore = JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders_products");
+
+        given(paymentService.sendPayment(any(PaymentDetails.class)))
+                .willReturn(this.getPaymentResponse(order.getPaymentDetails(), PaymentStatusEnum.PAYMENT_FAILED),
+                        this.getPaymentResponse(order.getPaymentDetails(), PaymentStatusEnum.PAYMENT_FAILED));
+
+        String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
+
+        mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk());
+
+        int rowCountOrderProductsAfter1Call = JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders_products");
+
+        mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .content(bodyRequest)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk());
+
+        int rowCountOrderProductsAfter2Calls = JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders_products");
+
+        assertEquals(rowCountOrderProductsBefore, 0);
+        assertEquals(rowCountOrderProductsAfter1Call, 2);
+        assertEquals(rowCountOrderProductsAfter2Calls, 2);
     }
 
 }
