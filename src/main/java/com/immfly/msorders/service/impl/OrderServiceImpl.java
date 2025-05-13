@@ -22,6 +22,12 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
+import static com.immfly.msorders.constants.ErrorMessages.NON_EXISTING_ORDER;
+import static com.immfly.msorders.constants.ErrorMessages.NON_EXISTING_PRODUCT;
+import static com.immfly.msorders.constants.ErrorMessages.NOT_ENOUGH_STOCK_PRODUCT;
+import static com.immfly.msorders.constants.ErrorMessages.NOT_OPEN_ORDER;
+import static com.immfly.msorders.constants.ErrorMessages.OUT_OF_STOCK_PRODUCT;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,16 +42,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
     private final PaymentService paymentService;
-
-    private static final String NON_EXISTING_ORDER = "Order with ID %s not found";
-
-    private static final String NON_EXISTING_PRODUCT = "Product with ID %s not found";
-
-    private static final String OUT_OF_STOCK_PRODUCT = "Product %s is out of stock";
-
-    private static final String NOT_ENOUGH_STOCK_PRODUCT = "Not enough stock for product %s, stock: %s";
-
-    private static final String NOT_OPEN_ORDER = "Order with ID %s has status %s";
 
     @Override
     public OrderResponseDto createOrder(SeatInformationRequestDto seatInformationRequestDto) {
@@ -71,12 +67,16 @@ public class OrderServiceImpl implements OrderService {
         Order orderToFinish = this.getOrderFromDataBase(id);
         this.verifyOrderStatus(orderToFinish);
         this.initializeOrderProductList(orderToFinish);
+        log.debug("[OrderService] Adding products...");
         orderToFinish = this.addProductsToOrder(orderToFinish, finishOrderRequestDto);
         orderMapper.updateOrderWithFinishOrderRequest(finishOrderRequestDto, orderToFinish);
         orderToFinish = this.saveOrderOnDataBase(orderToFinish);
+        log.debug("[OrderService] Sending payment...");
         PaymentDetails payment = paymentService.sendPayment(orderToFinish.getPaymentDetails());
+        log.debug("[OrderService] Payment result status: {}", payment.getStatus());
         orderToFinish.getPaymentDetails().setStatus(payment.getStatus());
         if (PaymentStatusEnum.PAID.equals(payment.getStatus())) {
+
             orderToFinish.setStatus(OrderStatusEnum.FINISHED);
             this.updateProductStocksAfterPayment(orderToFinish);
         }
