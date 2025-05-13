@@ -10,7 +10,7 @@ public class OrderResponseDto {
 
     private Long id;
 
-    private List<ProductResponseDto> products;
+    private List<OrderProductResponseDto> orderProducts;
 
     private PaymentDetailsDto paymentDetails;
 

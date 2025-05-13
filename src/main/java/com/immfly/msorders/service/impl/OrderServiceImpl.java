@@ -4,6 +4,7 @@ import com.immfly.msorders.dto.order.OrderResponseDto;
 import com.immfly.msorders.dto.order.ProductListRequestDto;
 import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.entity.Order;
+import com.immfly.msorders.entity.OrderProduct;
 import com.immfly.msorders.entity.Product;
 import com.immfly.msorders.enums.OrderStatusEnum;
 import com.immfly.msorders.exception.DatabaseException;
@@ -15,10 +16,9 @@ import com.immfly.msorders.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -86,23 +86,29 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void updateProductStockAndOrder(Product product, Integer quantity, Order order) {
-        if (order.getProducts() == null) {
-            order.setProducts(new ArrayList<>());
+        if (order.getOrderProducts() == null) {
+            order.setOrderProducts(new ArrayList<>());
         }
 
-        boolean alreadyInOrder = order.getProducts()
-                .stream()
-                .anyMatch(p -> p.getId().equals(product.getId()));
+        Optional<OrderProduct> existingOrderProduct = order.getOrderProducts().stream()
+                .filter(op -> op.getProduct().getId().equals(product.getId()))
+                .findFirst();
 
         if (product.getStock() == 0) {
             throw new StockException(String.format(OUT_OF_STOCK_PRODUCT, product.getName()));
         } else if (product.getStock() - quantity < 0) {
             throw new StockException(String.format(NOT_ENOUGH_STOCK_PRODUCT, product.getName(), product.getStock()));
-        } else if (alreadyInOrder) {
+        } else if (existingOrderProduct.isPresent()) {
+            OrderProduct orderProduct = existingOrderProduct.get();
+            orderProduct.setQuantity(orderProduct.getQuantity() + quantity);
             product.setStock(product.getStock() - quantity);
         } else {
+            OrderProduct newOrderProduct = new OrderProduct();
+            newOrderProduct.setOrder(order);
+            newOrderProduct.setProduct(product);
+            newOrderProduct.setQuantity(quantity);
+            order.getOrderProducts().add(newOrderProduct);
             product.setStock(product.getStock() - quantity);
-            order.getProducts().add(product);
         }
     }
 }
