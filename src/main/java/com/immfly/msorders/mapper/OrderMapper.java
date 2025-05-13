@@ -2,7 +2,7 @@ package com.immfly.msorders.mapper;
 
 import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
-import com.immfly.msorders.dto.order.SeatInformationDto;
+import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.OrderProduct;
 import com.immfly.msorders.entity.Product;
@@ -16,7 +16,8 @@ public interface OrderMapper {
     @Mapping(target = "status", expression = "java(com.immfly.msorders.enums.OrderStatusEnum.OPEN)")
     @Mapping(target = "buyerDetails.seatLetter", source = "seatLetter")
     @Mapping(target = "buyerDetails.seatNumber", source = "seatNumber")
-    Order seatInformationRequestToOrder(SeatInformationDto seatInformationDto);
+    @Mapping(target = "paymentDetails", expression = "java(new com.immfly.msorders.entity.PaymentDetails())")
+    Order seatInformationRequestToOrder(SeatInformationRequestDto seatInformationRequestDto);
 
     @Mapping(target = "buyerInformation.email", source = "buyerDetails.email")
     @Mapping(target = "seatInformation.seatLetter", source = "buyerDetails.seatLetter")

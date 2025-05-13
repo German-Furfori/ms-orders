@@ -3,7 +3,7 @@ package com.immfly.msorders.service.impl;
 import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
 import com.immfly.msorders.dto.order.ProductListRequestDto;
-import com.immfly.msorders.dto.order.SeatInformationDto;
+import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.OrderProduct;
 import com.immfly.msorders.entity.PaymentDetails;
@@ -49,8 +49,8 @@ public class OrderServiceImpl implements OrderService {
     private static final String FINISHED_ORDER = "Order with ID %s already finished";
 
     @Override
-    public OrderResponseDto createOrder(SeatInformationDto seatInformationDto) {
-        Order newOrder = orderMapper.seatInformationRequestToOrder(seatInformationDto);
+    public OrderResponseDto createOrder(SeatInformationRequestDto seatInformationRequestDto) {
+        Order newOrder = orderMapper.seatInformationRequestToOrder(seatInformationRequestDto);
         log.debug("[OrderService] Saving order...");
         newOrder = this.saveOrderOnDataBase(newOrder);
         return orderMapper.orderToOrderResponseDto(newOrder);

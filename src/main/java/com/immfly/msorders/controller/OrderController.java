@@ -3,7 +3,7 @@ package com.immfly.msorders.controller;
 import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
 import com.immfly.msorders.dto.order.ProductListRequestDto;
-import com.immfly.msorders.dto.order.SeatInformationDto;
+import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +29,9 @@ public class OrderController {
 
     @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(value = HttpStatus.CREATED)
-    public OrderResponseDto createOrder(@Valid @RequestBody SeatInformationDto seatInformationDto) {
-        log.debug("[Orders] createOrder request: [{}]", seatInformationDto);
-        OrderResponseDto orderResponseDto = orderService.createOrder(seatInformationDto);
+    public OrderResponseDto createOrder(@Valid @RequestBody SeatInformationRequestDto seatInformationRequestDto) {
+        log.debug("[Orders] createOrder request: [{}]", seatInformationRequestDto);
+        OrderResponseDto orderResponseDto = orderService.createOrder(seatInformationRequestDto);
         log.debug("[Orders] createOrder response: [{}]", orderResponseDto);
         return orderResponseDto;
     }

@@ -13,6 +13,6 @@ public class FinishOrderRequestDto {
 
     @Valid
     @NotNull(message = "The buyerInformation field cannot be null")
-    private BuyerInformationDto buyerInformation;
+    private BuyerInformationRequestDto buyerInformation;
 
 }

@@ -1,10 +1,12 @@
 package com.immfly.msorders.dto.order;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.immfly.msorders.enums.OrderStatusEnum;
 import lombok.Data;
 import java.util.List;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderResponseDto {
 
     private Long id;
@@ -13,9 +15,9 @@ public class OrderResponseDto {
 
     private PaymentDetailsResponseDto paymentDetails;
 
-    private BuyerInformationDto buyerInformation;
+    private BuyerInformationResponseDto buyerInformation;
 
-    private SeatInformationDto seatInformation;
+    private SeatInformationResponseDto seatInformation;
 
     private OrderStatusEnum status;
 
