@@ -4,9 +4,9 @@ import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 
 @Data
-public class BuyerInformationRequestDto {
+public class BuyerInformationDto {
 
-    @NotBlank
+    @NotBlank(message = "The email field cannot be empty or null")
     private String email;
 
 }

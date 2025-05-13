@@ -1,6 +1,5 @@
 package com.immfly.msorders.dto.order;
 
-import com.immfly.msorders.dto.product.ProductResponseDto;
 import com.immfly.msorders.enums.OrderStatusEnum;
 import lombok.Data;
 import java.util.List;
@@ -12,11 +11,11 @@ public class OrderResponseDto {
 
     private List<OrderProductResponseDto> orderProducts;
 
-    private PaymentDetailsDto paymentDetails;
+    private PaymentDetailsResponseDto paymentDetails;
 
-    private BuyerInformationRequestDto buyerInformation;
+    private BuyerInformationDto buyerInformation;
 
-    private SeatInformationRequestDto seatInformation;
+    private SeatInformationDto seatInformation;
 
     private OrderStatusEnum status;
 

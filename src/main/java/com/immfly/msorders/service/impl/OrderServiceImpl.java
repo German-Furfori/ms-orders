@@ -1,18 +1,21 @@
 package com.immfly.msorders.service.impl;
 
+import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
 import com.immfly.msorders.dto.order.ProductListRequestDto;
-import com.immfly.msorders.dto.order.SeatInformationRequestDto;
+import com.immfly.msorders.dto.order.SeatInformationDto;
 import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.OrderProduct;
+import com.immfly.msorders.entity.PaymentDetails;
 import com.immfly.msorders.entity.Product;
 import com.immfly.msorders.enums.OrderStatusEnum;
+import com.immfly.msorders.enums.PaymentStatusEnum;
 import com.immfly.msorders.exception.DatabaseException;
-import com.immfly.msorders.exception.StockException;
 import com.immfly.msorders.mapper.OrderMapper;
 import com.immfly.msorders.repository.OrderRepository;
 import com.immfly.msorders.repository.ProductRepository;
 import com.immfly.msorders.service.OrderService;
+import com.immfly.msorders.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
 
+    private final PaymentService paymentService;
+
     private static final String NON_EXISTING_ORDER = "Order with ID %s not found";
 
     private static final String NON_EXISTING_PRODUCT = "Product with ID %s not found";
@@ -39,9 +44,13 @@ public class OrderServiceImpl implements OrderService {
 
     private static final String NOT_ENOUGH_STOCK_PRODUCT = "Not enough stock for product %s, stock: %s";
 
+    private static final String NO_PRODUCTS_ORDER = "Order with ID %s has no products";
+
+    private static final String FINISHED_ORDER = "Order with ID %s already finished";
+
     @Override
-    public OrderResponseDto createOrder(SeatInformationRequestDto seatInformationRequestDto) {
-        Order newOrder = orderMapper.seatInformationRequestToOrder(seatInformationRequestDto);
+    public OrderResponseDto createOrder(SeatInformationDto seatInformationDto) {
+        Order newOrder = orderMapper.seatInformationRequestToOrder(seatInformationDto);
         log.debug("[OrderService] Saving order...");
         newOrder = this.saveOrderOnDataBase(newOrder);
         return orderMapper.orderToOrderResponseDto(newOrder);
@@ -71,6 +80,22 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.orderToOrderResponseDto(orderSavedWithProducts);
     }
 
+    @Override
+    public OrderResponseDto finishOrder(Long id, FinishOrderRequestDto finishOrderRequestDto) {
+        Order orderToFinish = this.getOrderFromDataBase(id);
+        this.verifyOrderProductsAndStatus(orderToFinish);
+        orderMapper.updateOrderWithFinishOrderRequest(finishOrderRequestDto, orderToFinish);
+        orderToFinish = this.saveOrderOnDataBase(orderToFinish);
+        PaymentDetails payment = this.paymentService.sendPayment(orderToFinish.getPaymentDetails());
+        orderToFinish.getPaymentDetails().setStatus(payment.getStatus());
+        if (PaymentStatusEnum.PAID.equals(payment.getStatus())) {
+            orderToFinish.setStatus(OrderStatusEnum.FINISHED);
+        }
+        orderToFinish = this.saveOrderOnDataBase(orderToFinish);
+
+        return orderMapper.orderToOrderResponseDto(orderToFinish);
+    }
+
     private Order saveOrderOnDataBase(Order order) {
         try {
             return orderRepository.saveAndFlush(order);
@@ -95,20 +120,25 @@ public class OrderServiceImpl implements OrderService {
                 .findFirst();
 
         if (product.getStock() == 0) {
-            throw new StockException(String.format(OUT_OF_STOCK_PRODUCT, product.getName()));
+            throw new UnsupportedOperationException(String.format(OUT_OF_STOCK_PRODUCT, product.getName()));
         } else if (product.getStock() - quantity < 0) {
-            throw new StockException(String.format(NOT_ENOUGH_STOCK_PRODUCT, product.getName(), product.getStock()));
+            throw new UnsupportedOperationException(String.format(NOT_ENOUGH_STOCK_PRODUCT, product.getName(), product.getStock()));
         } else if (existingOrderProduct.isPresent()) {
             OrderProduct orderProduct = existingOrderProduct.get();
             orderProduct.setQuantity(orderProduct.getQuantity() + quantity);
             product.setStock(product.getStock() - quantity);
         } else {
-            OrderProduct newOrderProduct = new OrderProduct();
-            newOrderProduct.setOrder(order);
-            newOrderProduct.setProduct(product);
-            newOrderProduct.setQuantity(quantity);
+            OrderProduct newOrderProduct = orderMapper.getOrderProduct(order, product, quantity);
             order.getOrderProducts().add(newOrderProduct);
             product.setStock(product.getStock() - quantity);
+        }
+    }
+
+    private void verifyOrderProductsAndStatus(Order orderToFinish) {
+        if (orderToFinish.getOrderProducts() == null || orderToFinish.getOrderProducts().isEmpty()) {
+            throw new UnsupportedOperationException(String.format(NO_PRODUCTS_ORDER, orderToFinish.getId()));
+        } else if (OrderStatusEnum.FINISHED.equals(orderToFinish.getStatus())) {
+            throw new UnsupportedOperationException(String.format(FINISHED_ORDER, orderToFinish.getId()));
         }
     }
 }

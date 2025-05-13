@@ -2,7 +2,6 @@ package com.immfly.msorders.controller.advice;
 
 import com.immfly.msorders.error.ErrorResponse;
 import com.immfly.msorders.exception.DatabaseException;
-import com.immfly.msorders.exception.StockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -41,11 +40,11 @@ public class ControllerAdvice {
         return this.generateError(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
-    @ExceptionHandler(StockException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse stockExceptionHandler(StockException exception) {
-        log.error("[ControllerAdvice] stockExceptionHandler, exception: [{}]", exception.getMessage());
-        return this.generateError(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    @ExceptionHandler(UnsupportedOperationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse unsupportedOperationExceptionHandler(UnsupportedOperationException exception) {
+        log.error("[ControllerAdvice] unsupportedOperationExceptionHandler, exception: [{}]", exception.getMessage());
+        return this.generateError(HttpStatus.CONFLICT, exception.getMessage());
     }
 
     @ExceptionHandler(NoSuchElementException.class)

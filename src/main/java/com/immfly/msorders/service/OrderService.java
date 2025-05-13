@@ -1,14 +1,17 @@
 package com.immfly.msorders.service;
 
+import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
 import com.immfly.msorders.dto.order.ProductListRequestDto;
-import com.immfly.msorders.dto.order.SeatInformationRequestDto;
+import com.immfly.msorders.dto.order.SeatInformationDto;
 
 public interface OrderService {
 
-    OrderResponseDto createOrder(SeatInformationRequestDto seatInformationRequestDto);
+    OrderResponseDto createOrder(SeatInformationDto seatInformationDto);
 
     OrderResponseDto dropOrder(Long id);
 
     OrderResponseDto addProductsToOrder(Long id, ProductListRequestDto productListRequestDto);
+
+    OrderResponseDto finishOrder(Long id, FinishOrderRequestDto finishOrderRequestDto);
 }

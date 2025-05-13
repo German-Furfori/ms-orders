@@ -2,11 +2,10 @@ package com.immfly.msorders.dto.order;
 
 import com.immfly.msorders.enums.PaymentStatusEnum;
 import lombok.Data;
-
 import java.time.Instant;
 
 @Data
-public class PaymentDetailsDto {
+public class PaymentDetailsResponseDto {
 
     private Long id;
 

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class SeatInformationRequestDto {
+public class SeatInformationDto {
 
     @NotNull(message = "The seatLetter field cannot be null")
     @Pattern(regexp = "^[A-Z]$", message = "The seatLetter field must be 1 upper case letter")

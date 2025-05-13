@@ -1,8 +1,9 @@
 package com.immfly.msorders.controller;
 
+import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
 import com.immfly.msorders.dto.order.ProductListRequestDto;
-import com.immfly.msorders.dto.order.SeatInformationRequestDto;
+import com.immfly.msorders.dto.order.SeatInformationDto;
 import com.immfly.msorders.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +29,9 @@ public class OrderController {
 
     @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(value = HttpStatus.CREATED)
-    public OrderResponseDto createOrder(@Valid @RequestBody SeatInformationRequestDto seatInformationRequestDto) {
-        log.debug("[Orders] createOrder request: [{}]", seatInformationRequestDto);
-        OrderResponseDto orderResponseDto = orderService.createOrder(seatInformationRequestDto);
+    public OrderResponseDto createOrder(@Valid @RequestBody SeatInformationDto seatInformationDto) {
+        log.debug("[Orders] createOrder request: [{}]", seatInformationDto);
+        OrderResponseDto orderResponseDto = orderService.createOrder(seatInformationDto);
         log.debug("[Orders] createOrder response: [{}]", orderResponseDto);
         return orderResponseDto;
     }
@@ -51,6 +52,16 @@ public class OrderController {
         log.debug("[Orders] addProductsToOrder request: [{}], [{}]", id, productListRequestDto);
         OrderResponseDto orderResponseDto = orderService.addProductsToOrder(id, productListRequestDto);
         log.debug("[Orders] addProductsToOrder response: [{}]", orderResponseDto);
+        return orderResponseDto;
+    }
+
+    @PatchMapping(path = "/{id}/finish", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ResponseStatus(value = HttpStatus.OK)
+    public OrderResponseDto finishOrder(@PathVariable Long id,
+                                        @Valid @RequestBody FinishOrderRequestDto finishOrderRequestDto) {
+        log.debug("[Orders] finishOrder request: [{}], [{}]", id, finishOrderRequestDto);
+        OrderResponseDto orderResponseDto = orderService.finishOrder(id, finishOrderRequestDto);
+        log.debug("[Orders] finishOrder response: [{}]", orderResponseDto);
         return orderResponseDto;
     }
 
