@@ -126,9 +126,13 @@ public class OrderServiceImpl implements OrderService {
         } else if (existingOrderProduct.isPresent()) {
             OrderProduct orderProduct = existingOrderProduct.get();
             orderProduct.setQuantity(orderProduct.getQuantity() + quantity);
+            Long totalPrice = orderProduct.getProduct().getPrice() * orderProduct.getQuantity();
+            order.getPaymentDetails().setTotalPrice(totalPrice);
             product.setStock(product.getStock() - quantity);
         } else {
             OrderProduct newOrderProduct = orderMapper.getOrderProduct(order, product, quantity);
+            Long totalPrice = newOrderProduct.getProduct().getPrice() * newOrderProduct.getQuantity();
+            order.getPaymentDetails().setTotalPrice(totalPrice);
             order.getOrderProducts().add(newOrderProduct);
             product.setStock(product.getStock() - quantity);
         }

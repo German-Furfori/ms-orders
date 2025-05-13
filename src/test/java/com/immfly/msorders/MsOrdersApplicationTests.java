@@ -3,6 +3,7 @@ package com.immfly.msorders;
 import com.immfly.msorders.entity.BuyerDetails;
 import com.immfly.msorders.entity.Category;
 import com.immfly.msorders.entity.Order;
+import com.immfly.msorders.entity.PaymentDetails;
 import com.immfly.msorders.entity.Product;
 import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
@@ -65,6 +66,7 @@ public abstract class MsOrdersApplicationTests {
 		Product product = new Product();
 		product.setName(name);
 		product.setStock(10);
+		product.setPrice(10L);
 
 		entityManager.persist(product);
 		entityManager.flush();
@@ -78,6 +80,7 @@ public abstract class MsOrdersApplicationTests {
 		buyerDetails.setSeatNumber("1");
 
 		order.setBuyerDetails(buyerDetails);
+		order.setPaymentDetails(new PaymentDetails());
 
 		entityManager.persist(order);
 		entityManager.flush();
