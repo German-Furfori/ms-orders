@@ -6,6 +6,9 @@ import com.immfly.msorders.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
 @Slf4j
@@ -19,6 +22,7 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentDetails sendPayment(PaymentDetails payment) {
         PaymentStatusEnum[] statuses = PaymentStatusEnum.values();
         payment.setStatus(statuses[random.nextInt(statuses.length)]);
+        payment.setDate(Instant.now().truncatedTo(ChronoUnit.SECONDS));
 
         return payment;
     }

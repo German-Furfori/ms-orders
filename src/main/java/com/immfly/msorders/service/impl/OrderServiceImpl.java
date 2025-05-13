@@ -74,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
         orderToFinish = this.addProductsToOrder(orderToFinish, finishOrderRequestDto);
         orderMapper.updateOrderWithFinishOrderRequest(finishOrderRequestDto, orderToFinish);
         orderToFinish = this.saveOrderOnDataBase(orderToFinish);
-        PaymentDetails payment = this.paymentService.sendPayment(orderToFinish.getPaymentDetails());
+        PaymentDetails payment = paymentService.sendPayment(orderToFinish.getPaymentDetails());
         orderToFinish.getPaymentDetails().setStatus(payment.getStatus());
         if (PaymentStatusEnum.PAID.equals(payment.getStatus())) {
             orderToFinish.setStatus(OrderStatusEnum.FINISHED);
