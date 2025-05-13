@@ -11,4 +11,5 @@ public interface CategoryMapper {
 
     List<CategoryResponseDto> categoryPagesToCategoryResponse(Page<Category> categories);
 
+    CategoryResponseDto categoryToCategoryResponse(Category category);
 }
