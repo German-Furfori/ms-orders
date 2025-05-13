@@ -2,7 +2,6 @@ package com.immfly.msorders.controller;
 
 import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
-import com.immfly.msorders.dto.order.ProductListRequestDto;
 import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -45,17 +44,7 @@ public class OrderController {
         return orderResponseDto;
     }
 
-    @PatchMapping(path = "/{id}/products", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @ResponseStatus(value = HttpStatus.OK)
-    public OrderResponseDto addProductsToOrder(@PathVariable Long id,
-                                               @Valid @RequestBody ProductListRequestDto productListRequestDto) {
-        log.debug("[Orders] addProductsToOrder request: [{}], [{}]", id, productListRequestDto);
-        OrderResponseDto orderResponseDto = orderService.addProductsToOrder(id, productListRequestDto);
-        log.debug("[Orders] addProductsToOrder response: [{}]", orderResponseDto);
-        return orderResponseDto;
-    }
-
-    @PatchMapping(path = "/{id}/finish", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PatchMapping(path = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public OrderResponseDto finishOrder(@PathVariable Long id,
                                         @Valid @RequestBody FinishOrderRequestDto finishOrderRequestDto) {

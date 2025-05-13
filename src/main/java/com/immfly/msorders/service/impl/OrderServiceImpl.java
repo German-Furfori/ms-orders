@@ -2,7 +2,6 @@ package com.immfly.msorders.service.impl;
 
 import com.immfly.msorders.dto.order.FinishOrderRequestDto;
 import com.immfly.msorders.dto.order.OrderResponseDto;
-import com.immfly.msorders.dto.order.ProductListRequestDto;
 import com.immfly.msorders.dto.order.SeatInformationRequestDto;
 import com.immfly.msorders.entity.Order;
 import com.immfly.msorders.entity.OrderProduct;
@@ -21,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -44,8 +42,6 @@ public class OrderServiceImpl implements OrderService {
 
     private static final String NOT_ENOUGH_STOCK_PRODUCT = "Not enough stock for product %s, stock: %s";
 
-    private static final String NO_PRODUCTS_ORDER = "Order with ID %s has no products";
-
     private static final String FINISHED_ORDER = "Order with ID %s already finished";
 
     @Override
@@ -67,29 +63,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponseDto addProductsToOrder(Long id, ProductListRequestDto productListRequestDto) {
-        Order orderToAddProducts = this.getOrderFromDataBase(id);
-        productListRequestDto.getProductList()
-                .forEach(productRequest -> {
-                    Product product = productRepository.findById(productRequest.getId())
-                            .orElseThrow(() -> new NoSuchElementException(String.format(NON_EXISTING_PRODUCT, id)));
-                    this.updateProductStockAndOrder(product, productRequest.getQuantity(), orderToAddProducts);
-                });
-        Order orderSavedWithProducts = this.saveOrderOnDataBase(orderToAddProducts);
-
-        return orderMapper.orderToOrderResponseDto(orderSavedWithProducts);
-    }
-
-    @Override
     public OrderResponseDto finishOrder(Long id, FinishOrderRequestDto finishOrderRequestDto) {
         Order orderToFinish = this.getOrderFromDataBase(id);
-        this.verifyOrderProductsAndStatus(orderToFinish);
+        this.verifyOrderStatus(orderToFinish);
+        orderToFinish = this.addProductsToOrder(orderToFinish, finishOrderRequestDto);
         orderMapper.updateOrderWithFinishOrderRequest(finishOrderRequestDto, orderToFinish);
         orderToFinish = this.saveOrderOnDataBase(orderToFinish);
         PaymentDetails payment = this.paymentService.sendPayment(orderToFinish.getPaymentDetails());
         orderToFinish.getPaymentDetails().setStatus(payment.getStatus());
         if (PaymentStatusEnum.PAID.equals(payment.getStatus())) {
             orderToFinish.setStatus(OrderStatusEnum.FINISHED);
+            this.updateProductStocksAfterPayment(orderToFinish);
         }
         orderToFinish = this.saveOrderOnDataBase(orderToFinish);
 
@@ -110,39 +94,43 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new NoSuchElementException(String.format(NON_EXISTING_ORDER, id)));
     }
 
-    private void updateProductStockAndOrder(Product product, Integer quantity, Order order) {
-        if (order.getOrderProducts() == null) {
-            order.setOrderProducts(new ArrayList<>());
-        }
+    private Order addProductsToOrder(Order order, FinishOrderRequestDto finishOrderRequestDto) {
+        finishOrderRequestDto.getProductList()
+                .forEach(productRequest -> {
+                    Product product = productRepository.findById(productRequest.getId())
+                            .orElseThrow(() -> new NoSuchElementException(String.format(NON_EXISTING_PRODUCT, productRequest.getId())));
+                    this.updateOrderWithProducts(product, productRequest.getQuantity(), order);
+                });
 
-        Optional<OrderProduct> existingOrderProduct = order.getOrderProducts().stream()
-                .filter(op -> op.getProduct().getId().equals(product.getId()))
-                .findFirst();
+        return this.saveOrderOnDataBase(order);
+    }
+
+    private void updateOrderWithProducts(Product product, Integer quantity, Order order) {
+        order.setOrderProducts(new ArrayList<>());
 
         if (product.getStock() == 0) {
             throw new UnsupportedOperationException(String.format(OUT_OF_STOCK_PRODUCT, product.getName()));
         } else if (product.getStock() - quantity < 0) {
             throw new UnsupportedOperationException(String.format(NOT_ENOUGH_STOCK_PRODUCT, product.getName(), product.getStock()));
-        } else if (existingOrderProduct.isPresent()) {
-            OrderProduct orderProduct = existingOrderProduct.get();
-            orderProduct.setQuantity(orderProduct.getQuantity() + quantity);
-            Long totalPrice = orderProduct.getProduct().getPrice() * orderProduct.getQuantity();
-            order.getPaymentDetails().setTotalPrice(totalPrice);
-            product.setStock(product.getStock() - quantity);
         } else {
             OrderProduct newOrderProduct = orderMapper.getOrderProduct(order, product, quantity);
             Long totalPrice = newOrderProduct.getProduct().getPrice() * newOrderProduct.getQuantity();
             order.getPaymentDetails().setTotalPrice(totalPrice);
             order.getOrderProducts().add(newOrderProduct);
-            product.setStock(product.getStock() - quantity);
         }
     }
 
-    private void verifyOrderProductsAndStatus(Order orderToFinish) {
-        if (orderToFinish.getOrderProducts() == null || orderToFinish.getOrderProducts().isEmpty()) {
-            throw new UnsupportedOperationException(String.format(NO_PRODUCTS_ORDER, orderToFinish.getId()));
-        } else if (OrderStatusEnum.FINISHED.equals(orderToFinish.getStatus())) {
+    private void verifyOrderStatus(Order orderToFinish) {
+         if (OrderStatusEnum.FINISHED.equals(orderToFinish.getStatus())) {
             throw new UnsupportedOperationException(String.format(FINISHED_ORDER, orderToFinish.getId()));
         }
+    }
+
+    private void updateProductStocksAfterPayment(Order orderToFinish) {
+        orderToFinish.getOrderProducts()
+                .forEach(orderProduct -> {
+                    Integer finalStock = orderProduct.getProduct().getStock() - orderProduct.getQuantity();
+                    orderProduct.getProduct().setStock(finalStock);
+                });
     }
 }
