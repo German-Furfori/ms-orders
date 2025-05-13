@@ -12,7 +12,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class ProductControllerTest extends MsOrdersApplicationTests {
 
-    private final String pathCategory = "/products";
+    private final String pathProduct = "/products";
+
+    private final String defaultPathProductId = "/1";
 
     private final String defaultPage = "0";
 
@@ -21,17 +23,17 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
     @Test
     @SneakyThrows
     void findAllProducts_withData_returnPage() {
-        this.generateProductInDatabase("Tea");
-        this.generateProductInDatabase("Coffee");
-        this.generateProductInDatabase("Sandwich");
-        this.generateProductInDatabase("Pizza");
-        this.generateProductInDatabase("Potatoes");
-        this.generateProductInDatabase("Candy");
-        this.generateProductInDatabase("Water");
-        this.generateProductInDatabase("Wine");
+        this.generateProductInDatabase("Tea", 10);
+        this.generateProductInDatabase("Coffee", 10);
+        this.generateProductInDatabase("Sandwich", 10);
+        this.generateProductInDatabase("Pizza", 10);
+        this.generateProductInDatabase("Potatoes", 10);
+        this.generateProductInDatabase("Candy", 10);
+        this.generateProductInDatabase("Water", 10);
+        this.generateProductInDatabase("Wine", 10);
 
         mockMvc
-                .perform(get(pathCategory)
+                .perform(get(pathProduct)
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
@@ -46,13 +48,43 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
     @SneakyThrows
     void findAllProducts_withoutData_returnEmptyPage() {
         mockMvc
-                .perform(get(pathCategory)
+                .perform(get(pathProduct)
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.count").exists())
                 .andExpect(jsonPath("$.total").exists())
                 .andExpect(jsonPath("$.results").isEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void findProductById_withData_returnProduct() {
+        this.generateProductInDatabase("Tea", 10);
+
+        mockMvc
+                .perform(get(pathProduct + defaultPathProductId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name").exists())
+                .andExpect(jsonPath("$.price").exists())
+                .andExpect(jsonPath("$.stock").exists())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Tea"))
+                .andExpect(jsonPath("$.price").value(10))
+                .andExpect(jsonPath("$.stock").value(10));
+    }
+
+    @Test
+    @SneakyThrows
+    void findProductById_withNoData_returnNotFound() {
+        mockMvc
+                .perform(get(pathProduct + defaultPathProductId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("Product with ID 1 not found"));
     }
 
 }

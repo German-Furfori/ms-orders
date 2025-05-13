@@ -1,0 +1,17 @@
+{
+  "productList": [
+    {
+      "id": 1,
+      "quantity": 5
+    },
+    {
+      "id": 2,
+      "quantity": 5
+    }
+  ],
+  "buyerInformation": null,
+  "paymentDetails": {
+    "cardToken": "token",
+    "gateway": "gateway"
+  }
+}

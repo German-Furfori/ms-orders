@@ -13,6 +13,8 @@ public class CategoryControllerTest extends MsOrdersApplicationTests {
 
     private final String pathCategory = "/categories";
 
+    private final String defaultPathCategoryId = "/1";
+
     private final String defaultPage = "0";
 
     private final String defaultSize = "2";
@@ -48,6 +50,32 @@ public class CategoryControllerTest extends MsOrdersApplicationTests {
                 .andExpect(jsonPath("$.count").exists())
                 .andExpect(jsonPath("$.total").exists())
                 .andExpect(jsonPath("$.results").isEmpty());
+    }
+
+    @Test
+    @SneakyThrows
+    void findCategoryById_withData_returnCategory() {
+        this.generateCategoryInDatabase("Breakfast");
+
+        mockMvc
+                .perform(get(pathCategory + defaultPathCategoryId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name").exists())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Breakfast"));
+    }
+
+    @Test
+    @SneakyThrows
+    void findCategoryById_withNoData_returnNotFound() {
+        mockMvc
+                .perform(get(pathCategory + defaultPathCategoryId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").exists())
+                .andExpect(jsonPath("$.description").exists())
+                .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
+                .andExpect(jsonPath("$.description").value("Category with ID 1 not found"));
     }
 
 }
