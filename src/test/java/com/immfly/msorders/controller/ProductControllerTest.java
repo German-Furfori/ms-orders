@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 public class ProductControllerTest extends MsOrdersApplicationTests {
 
-    private final String pathCategory = "/products";
+    private final String pathProduct = "/products";
 
     private final String defaultPathProductId = "/1";
 
@@ -33,7 +33,7 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
         this.generateProductInDatabase("Wine", 10);
 
         mockMvc
-                .perform(get(pathCategory)
+                .perform(get(pathProduct)
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
@@ -48,7 +48,7 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
     @SneakyThrows
     void findAllProducts_withoutData_returnEmptyPage() {
         mockMvc
-                .perform(get(pathCategory)
+                .perform(get(pathProduct)
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
@@ -63,7 +63,7 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
         this.generateProductInDatabase("Tea", 10);
 
         mockMvc
-                .perform(get(pathCategory + defaultPathProductId))
+                .perform(get(pathProduct + defaultPathProductId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").exists())
@@ -79,7 +79,7 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
     @SneakyThrows
     void findProductById_withNoData_returnNotFound() {
         mockMvc
-                .perform(get(pathCategory + defaultPathProductId))
+                .perform(get(pathProduct + defaultPathProductId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.description").exists())
