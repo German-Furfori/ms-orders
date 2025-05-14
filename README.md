@@ -71,3 +71,14 @@ For endpoints that support pagination (like `GET /products` and `GET /categories
 
 - `page`: Page number (first page: `0`)
 - `size`: Number of items per page
+
+## 🔍 H2 Database Console
+
+You can access the H2 in-memory database console through the following URL:
+
+[http://localhost:8080/h2-console](http://localhost:8080/h2-console)
+
+Use the following credentials to log in:
+
+- **Username:** `sa`
+- **Password:** *(leave empty)*  
