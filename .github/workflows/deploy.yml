@@ -5,7 +5,7 @@ on:
       - main
 
 jobs:
-  run-unit-tests:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,7 +34,7 @@ jobs:
           name: ms-orders
           path: ms-orders-${{ github.sha }}.jar
 
-  fake-deploy:
+  deploy:
     runs-on: ubuntu-latest
     needs: run-unit-tests
     steps:
