@@ -35,6 +35,17 @@ All endpoints require basic authentication.
 
 Make sure to include these credentials when making requests using Postman or any HTTP client.
 
+## H2 Database Console
+
+You can access the H2 in-memory database console through the following URL:
+
+[http://localhost:8080/h2-console](http://localhost:8080/h2-console)
+
+Use the following credentials to log in:
+
+- **Username:** `sa`
+- **Password:** *(leave empty)*
+
 ## Endpoints
 
 ### 📦 Products
@@ -71,14 +82,3 @@ For endpoints that support pagination (like `GET /products` and `GET /categories
 
 - `page`: Page number (first page: `0`)
 - `size`: Number of items per page
-
-## 🔍 H2 Database Console
-
-You can access the H2 in-memory database console through the following URL:
-
-[http://localhost:8080/h2-console](http://localhost:8080/h2-console)
-
-Use the following credentials to log in:
-
-- **Username:** `sa`
-- **Password:** *(leave empty)*  
