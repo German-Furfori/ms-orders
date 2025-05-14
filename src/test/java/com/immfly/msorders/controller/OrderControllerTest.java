@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -80,6 +81,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         int rowCountBuyerDetails = JdbcTestUtils.countRowsInTable(jdbcTemplate, "buyer_details");
 
         mockMvc.perform(post(pathOrders)
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isCreated())
@@ -101,6 +103,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         String bodyRequest = getContentFromFile(file);
 
         mockMvc.perform(post(pathOrders)
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
@@ -116,6 +119,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         Order order = this.generateOrderInDatabase(OrderStatusEnum.OPEN);
 
         mockMvc.perform(delete(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").exists())
@@ -126,6 +130,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
     @SneakyThrows
     void dropOrder_withFieldsValid_returnNotFound() {
         mockMvc.perform(delete(pathOrders + defaultPathOrderId)
+                        .with(httpBasic("admin", "admin"))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").exists())
@@ -140,6 +145,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         Order order = this.generateOrderInDatabase(OrderStatusEnum.FINISHED);
 
         mockMvc.perform(delete(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").exists())
@@ -161,6 +167,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
 
         mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -205,6 +212,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         String bodyRequest = getContentFromFile(file);
 
         mockMvc.perform(patch(pathOrders + defaultPathOrderId)
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
@@ -222,6 +230,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
 
         mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isConflict())
@@ -247,6 +256,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
 
         mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk());
@@ -254,6 +264,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         int rowCountOrderProductsAfter1Call = JdbcTestUtils.countRowsInTable(jdbcTemplate, "orders_products");
 
         mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk());
@@ -274,6 +285,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         bodyRequest = bodyRequest.replace("\"id\": 1", "\"id\": 100");
 
         mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isNotFound())
@@ -293,6 +305,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         String bodyRequest = getContentFromFile("orders/finish-order/finishOrder.json");
 
         mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isConflict())
@@ -313,6 +326,7 @@ public class OrderControllerTest extends MsOrdersApplicationTests {
         bodyRequest = bodyRequest.replace("\"quantity\": 5", "\"quantity\": 100");
 
         mockMvc.perform(patch(pathOrders + "/" + order.getId())
+                        .with(httpBasic("admin", "admin"))
                         .content(bodyRequest)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isConflict())

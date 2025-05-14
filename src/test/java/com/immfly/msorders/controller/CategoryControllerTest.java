@@ -3,6 +3,7 @@ package com.immfly.msorders.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import com.immfly.msorders.MsOrdersApplicationTests;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ public class CategoryControllerTest extends MsOrdersApplicationTests {
 
         mockMvc
                 .perform(get(pathCategory)
+                        .with(httpBasic("admin", "admin"))
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
@@ -44,6 +46,7 @@ public class CategoryControllerTest extends MsOrdersApplicationTests {
     void findAllCategories_withoutData_returnEmptyPage() {
         mockMvc
                 .perform(get(pathCategory)
+                        .with(httpBasic("admin", "admin"))
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
@@ -58,7 +61,8 @@ public class CategoryControllerTest extends MsOrdersApplicationTests {
         this.generateCategoryInDatabase("Breakfast");
 
         mockMvc
-                .perform(get(pathCategory + defaultPathCategoryId))
+                .perform(get(pathCategory + defaultPathCategoryId)
+                        .with(httpBasic("admin", "admin")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").exists())
@@ -70,7 +74,8 @@ public class CategoryControllerTest extends MsOrdersApplicationTests {
     @SneakyThrows
     void findCategoryById_withNoData_returnNotFound() {
         mockMvc
-                .perform(get(pathCategory + defaultPathCategoryId))
+                .perform(get(pathCategory + defaultPathCategoryId)
+                        .with(httpBasic("admin", "admin")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.description").exists())

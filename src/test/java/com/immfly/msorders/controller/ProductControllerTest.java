@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,6 +35,7 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
 
         mockMvc
                 .perform(get(pathProduct)
+                        .with(httpBasic("admin", "admin"))
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
@@ -49,6 +51,7 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
     void findAllProducts_withoutData_returnEmptyPage() {
         mockMvc
                 .perform(get(pathProduct)
+                        .with(httpBasic("admin", "admin"))
                         .param("page", defaultPage)
                         .param("size", defaultSize))
                 .andExpect(status().isOk())
@@ -63,7 +66,8 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
         this.generateProductInDatabase("Tea", 10);
 
         mockMvc
-                .perform(get(pathProduct + defaultPathProductId))
+                .perform(get(pathProduct + defaultPathProductId)
+                        .with(httpBasic("admin", "admin")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").exists())
@@ -79,7 +83,8 @@ public class ProductControllerTest extends MsOrdersApplicationTests {
     @SneakyThrows
     void findProductById_withNoData_returnNotFound() {
         mockMvc
-                .perform(get(pathProduct + defaultPathProductId))
+                .perform(get(pathProduct + defaultPathProductId)
+                        .with(httpBasic("admin", "admin")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").exists())
                 .andExpect(jsonPath("$.description").exists())

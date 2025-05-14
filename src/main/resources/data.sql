@@ -1,3 +1,6 @@
+INSERT INTO users (username, password) VALUES
+    ('admin', '$2a$10$KKJ8G/7kIDqhMV4AqHtAceKfyPiyBOynhDw4r1yi/SZQ4PptW.51e');
+
 INSERT INTO categories (name, category_related) VALUES
     ('Breakfast', NULL),
     ('Lunch/Dinner', NULL),
